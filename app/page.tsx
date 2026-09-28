@@ -9,14 +9,50 @@ import {
   Facebook,
   ChevronLeft,
   ChevronRight,
-  Zap,
   Flame,
-  Crosshair,
+  Wrench,
   ArrowUpRight,
   Gauge,
   MessageSquare,
   CheckCircle2,
+  Phone,
+  Tag,
+  ShieldCheck,
+  Sparkles,
+  Truck,
 } from "lucide-react";
+
+const WheelIcon = ({
+  size = 44,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Outer Tire & Rim Lip */}
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="7.5" strokeWidth="1.5" />
+    {/* Center Hub */}
+    <circle cx="12" cy="12" r="2.5" />
+    {/* 5 Alloy Spokes */}
+    <line x1="12" y1="9.5" x2="12" y2="4.5" />
+    <line x1="14.4" y1="11.2" x2="19.1" y2="9.7" />
+    <line x1="13.5" y1="14" x2="16.4" y2="18.1" />
+    <line x1="10.5" y1="14" x2="7.6" y2="18.1" />
+    <line x1="9.6" y1="11.2" x2="4.9" y2="9.7" />
+  </svg>
+);
 
 interface CarouselSlide {
   id: number;
@@ -29,8 +65,11 @@ interface ProductItem {
   id: number;
   name: string;
   price: number;
+  priceLabel?: string;
   originalPrice: number | null;
   isSale: boolean;
+  saleBadge?: string;
+  isPoster?: boolean;
   image: string;
   category: string;
   specs: string[];
@@ -44,122 +83,272 @@ interface PackageItem {
   features: string[];
 }
 
-const CAROUSEL_IMAGES: CarouselSlide[] = [
+interface PromoPost {
+  id: number;
+  badge: string;
+  title: string;
+  highlightPrice: string;
+  subtitle: string;
+  image: string;
+  brands: string[];
+  perks: string[];
+  ctaText: string;
+}
+
+interface ServiceItem {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  brands: string[];
+  icon: "wheel" | "suspension" | "truck" | "light";
+}
+
+const SERVICES_DATA: ServiceItem[] = [
   {
     id: 1,
-    url: "https://images.unsplash.com/photo-1600705663731-897dbd9cc532?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    title: "STANCE & FITMENT",
-    subtitle: "WE DON'T DO STOCK. WE DO PERFECT.",
+    title: "15\"–20\" RIMS & TIRES FITMENT",
+    subtitle: "MOUNTING, BALANCING & WHEEL ALIGNMENT",
+    description:
+      "Authorized dealer & fitment center for 15\" to 20\" off-road, flow-formed, and JDM wheels paired with all-terrain & mud-terrain tires. Includes computerized wheel balancing & alignment.",
+    brands: [
+      "BFGoodrich",
+      "FUEL Off-Road",
+      "VLF Flow Form",
+      "RAYS",
+      "WORK Wheels",
+      "Venom Power",
+      "Patriot Tires",
+    ],
+    icon: "wheel",
   },
   {
     id: 2,
-    url: "https://images.unsplash.com/photo-1542282088-fe8426682b8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    title: "DRAG PREP",
-    subtitle: "BUILT TO DOMINATE THE ASPHALT.",
+    title: "SUSPENSION & UNDERCHASSIS",
+    subtitle: "LIFT PACKAGES, ALIGNMENT & TUNING",
+    description:
+      "Complete suspension lift kits, adjustable monotube coilovers, underchassis upgrades, and heavy-duty shocks tuned for highway comfort and off-road trails.",
+    brands: [
+      "Profender Queen Series",
+      "Old Man Emu (OME)",
+      "RideMax",
+      "Wheel Alignment",
+    ],
+    icon: "suspension",
   },
   {
     id: 3,
+    title: "4X4 ARMOR & BED COVERS",
+    subtitle: "BUMPERS, ROLLER LIDS, CANOPIES & TRIFOLDS",
+    description:
+      "Steel bumpers, Hamer rollbars, nudge bars, tow hitches, ARB under-vehicle protection (UVP) plates, manual roller lids, trifold covers, and hard top canopies.",
+    brands: [
+      "Hamer 4x4",
+      "ARB Protection",
+      "Roller Lids",
+      "Trifold Covers",
+      "Hard Top Canopies",
+    ],
+    icon: "truck",
+  },
+  {
+    id: 4,
+    title: "LED LIGHTING & CAMPING GEAR",
+    subtitle: "AUXILIARY LIGHTS & OVERLANDING EQUIPMENT",
+    description:
+      "High-output LED headlights, fog projectors, and trail pods alongside genuine ARB camping gear, chairs, and overland accessories.",
+    brands: ["Novsight LED", "Nacho LED", "ARB Camping Gear"],
+    icon: "light",
+  },
+];
+
+const AUTHORIZED_BRANDS: string[] = [
+  "BFGOODRICH",
+  "FUEL OFF-ROAD",
+  "VLF FLOW FORM",
+  "PROFENDER",
+  "OLD MAN EMU",
+  "RIDEMAX",
+  "HAMER 4X4",
+  "ARB 4X4 ACCESSORIES",
+  "VENOM POWER",
+  "PATRIOT TIRES",
+  "RAYS",
+  "WORK WHEELS",
+  "NOVSIGHT LED",
+  "NACHO LED",
+];
+
+const PROMO_POSTS: PromoPost[] = [
+  {
+    id: 1,
+    badge: "FIRST 5 CLIENTS BONUS",
+    title: "20-INCH PROMO PACKAGE",
+    highlightPrice: "₱96,000",
+    subtitle: "20x9 RIMS + 275/55 R20 ALL-TERRAIN TIRES",
+    image: "/promos/promo-20inch-package.jpg",
+    brands: ["FUEL OFF-ROAD", "VENOM POWER TERRA HUNTER X/T2", "RAYS"],
+    perks: [
+      "20x9 FUEL Off-Road Rims + 275/55 R20 Venom Power Terra Hunter X/T2",
+      "FREE Installation & Computerized Wheel Balance",
+      "FREE RAYS Lug Nuts + Camping Chair (First 5 Clients!)",
+    ],
+    ctaText: "CLAIM 96K PACKAGE",
+  },
+  {
+    id: 2,
+    badge: "LIMITED TIME OFFER",
+    title: "RIMS PROMO SALE",
+    highlightPrice: "20% OFF",
+    subtitle: "SELECTED 15\"–20\" OFF-ROAD, FLOW FORM & JDM WHEELS",
+    image: "/promos/promo-rims-20off.jpg",
+    brands: ["FUEL OFF-ROAD", "VLF FLOW FORM", "RAYS", "WORK WHEELS"],
+    perks: [
+      "20% OFF on selected Rims across top performance & off-road brands",
+      "FUEL Off-Road • VLF Flow Form (Wheelegend) • RAYS • WORK Wheels",
+      "Available at Tomas Autoworks — IP Cars Compound, Maharlika Highway",
+    ],
+    ctaText: "INQUIRE 20% OFF RIMS",
+  },
+  {
+    id: 3,
+    badge: "BUY 3 GET 1 FREE",
+    title: "PATRIOT TIRE PROMO",
+    highlightPrice: "3+1 FREE",
+    subtitle: "PATRIOT RUGGED & ALL-TERRAIN TIRES",
+    image: "/promos/promo-tire-3plus1.jpg",
+    brands: ["PATRIOT TIRES", "OFF-ROAD", "ALL-TERRAIN"],
+    perks: [
+      "Buy 3 Patriot Tires and get 1 Tire FREE (3+1 Promo)",
+      "FREE Installation & Computerized Wheel Balance",
+      "Heavy-duty off-road & mud-terrain tread built for Philippine roads",
+    ],
+    ctaText: "CLAIM 3+1 TIRE PROMO",
+  },
+];
+
+const CAROUSEL_IMAGES: CarouselSlide[] = [
+  {
+    id: 1,
     url: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    title: "EURO TUNING",
-    subtitle: "PRECISION MEETS PERFORMANCE.",
+    title: "4X4 & OFF-ROAD",
+    subtitle: "YOUR FRIENDLY NEIGHBORHOOD CAR ACCESSORIES SHOP IN TACLOBAN",
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1600705663731-897dbd9cc532?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+    title: "RIMS & TIRES",
+    subtitle: "15\" TO 20\" FUEL • VLF • RAYS • WORK • BFGOODRICH • VENOM",
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1542282088-fe8426682b8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+    title: "SUSPENSION & RIGS",
+    subtitle: "PROFENDER • OLD MAN EMU • RIDEMAX • HAMER 4X4 • ARB",
   },
 ];
 
 const RIMS_DATA: ProductItem[] = [
   {
     id: 1,
-    name: "Stance Multi-spoke 19x10.5",
-    price: 180000,
-    originalPrice: 200000,
+    name: "20-Inch Promo Package (Fuel 20x9 + Venom 275/55 R20)",
+    price: 96000,
+    originalPrice: 115000,
     isSale: true,
-    image:
-      "https://images.unsplash.com/photo-1620054948839-81342674eb99?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    saleBadge: "96K PROMO!",
+    isPoster: true,
+    image: "/promos/promo-20inch-package.jpg",
     category: "PREMIUM RIMS",
     specs: [
-      "Size: 19x10.5J Square / Staggered",
-      "Offset: +15 to +22 Custom Fitment",
-      "PCD: 5x114.3 / 5x120",
-      "Construction: 3-Piece Step Lip Forged",
+      "20x9 FUEL Off-Road Rims + 275/55 R20 Venom Power Terra Hunter X/T2",
+      "FREE Installation & Computerized Wheel Balance",
+      "FIRST 5 CLIENTS: FREE RAYS Lug Nuts + Camping Chair",
+      "KC Ken: 0997 269 3611 | Owing: 0962 898 5139 | Johnrick: 0970 382 3659",
     ],
   },
   {
     id: 2,
-    name: "Euro Mesh 18x9 Forged",
-    price: 250000,
+    name: "Selected Rims Promo (FUEL • VLF • RAYS • WORK)",
+    price: 0,
+    priceLabel: "20% OFF",
     originalPrice: null,
-    isSale: false,
-    image:
-      "https://images.unsplash.com/photo-1590324838631-97b7cbba91b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    isSale: true,
+    saleBadge: "20% OFF!",
+    isPoster: true,
+    image: "/promos/promo-rims-20off.jpg",
     category: "PREMIUM RIMS",
     specs: [
-      "Size: 18x9J",
-      "Offset: +30 Euro Spec",
-      "PCD: 5x112 / 5x120",
-      "Construction: Monoblock 6061-T6 Forged",
+      "20% OFF on selected 15\"–20\" Rims across top off-road & JDM brands",
+      "Brands Included: FUEL Off-Road, VLF Flow Form, RAYS, WORK Wheels",
+      "Professional Fitment, Wheel Balancing & Alignment Available",
+      "KC Ken: 0997 269 3611 | Owing: 0962 898 5139 | Johnrick: 0970 382 3659",
     ],
   },
   {
     id: 3,
-    name: "Drag Radial Setup 15x8",
-    price: 120000,
-    originalPrice: 140000,
+    name: "VLF Flow Form Wheelegend Series (15\"–20\")",
+    price: 58000,
+    originalPrice: 68000,
     isSale: true,
+    saleBadge: "20% OFF!",
     image:
-      "https://images.unsplash.com/photo-1526367800727-b5b248a3ba5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      "https://images.unsplash.com/photo-1620054948839-81342674eb99?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "PREMIUM RIMS",
     specs: [
-      "Size: 15x8J Beadlock Ready",
-      "Tire Pairing: High-Traction Drag Radial",
-      "Weight: Ultra-lightweight Strip Spec",
-      "Includes Balancing & Valve Hardware",
+      "Ultra-Lightweight Flow-Formed Barrel Construction (15\" to 20\")",
+      "Available for SUVs, Pickups (6x139.7) & Street Sedans (5x114.3)",
+      "FREE Mounting & Computerized Wheel Balancing",
+      "Eligible for Selected Rims 20% OFF Promo",
     ],
   },
   {
     id: 4,
-    name: "Track Spec Forged 18x9.5",
-    price: 190000,
+    name: "FUEL Off-Road 20x9 4x4 Alloy Wheels",
+    price: 68000,
+    originalPrice: 85000,
+    isSale: true,
+    saleBadge: "20% OFF!",
+    image:
+      "https://images.unsplash.com/photo-1590324838631-97b7cbba91b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    category: "PREMIUM RIMS",
+    specs: [
+      "Size: 17\", 18\" & 20x9 Aggressive Off-Road Concave Profiles",
+      "Fitment: Hilux, Ranger, Fortuner, Montero, Terra, Triton, D-Max",
+      "Pair with Venom Power, Patriot, or BFGoodrich All-Terrain Tires",
+      "FREE Installation & Wheel Balancing Included",
+    ],
+  },
+  {
+    id: 5,
+    name: "BFGoodrich All-Terrain KO2 / KO3 + Rim Package",
+    price: 115000,
     originalPrice: null,
     isSale: false,
     image:
       "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "PREMIUM RIMS",
     specs: [
-      "Size: 18x9.5J Concave Face",
-      "Offset: +22 Track Clearance",
-      "Knurled Bead Seat for High Grip",
-      "Big Brake Kit Compatible",
-    ],
-  },
-  {
-    id: 5,
-    name: "Deep Dish VIP 20x11",
-    price: 185000,
-    originalPrice: 195000,
-    isSale: true,
-    image:
-      "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "PREMIUM RIMS",
-    specs: [
-      "Size: 20x11J Aggressive Lip",
-      "Finish: Mirror Polished Barrel + Brushed Face",
-      "Air Suspension Fender-to-Lip Ready",
-      "Includes Hubcentric Rings & Lug Hardware",
+      "Authorized BFGoodrich Tire Dealer in Tacloban City",
+      "CoreGard Technology Tough Sidewall All-Terrain Rubber",
+      "Bundled with VLF, FUEL, WORK, or RAYS Off-Road Rims",
+      "Includes Free Installation, Wheel Balance & Valve Stems",
     ],
   },
   {
     id: 6,
-    name: "Classic JDM 6-Spoke 17x9",
-    price: 95000,
-    originalPrice: null,
-    isSale: false,
+    name: "RAYS & WORK Wheels JDM / SUV Lineup (15\"–20\")",
+    price: 62000,
+    originalPrice: 75000,
+    isSale: true,
+    saleBadge: "20% OFF!",
     image:
       "https://images.unsplash.com/photo-1610647752706-3bb12232b3ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "PREMIUM RIMS",
     specs: [
-      "Size: 17x9J Iconic 6-Spoke",
-      "Offset: +25 Street/Track Fitment",
-      "PCD: 5x114.3 / 5x100",
-      "Lightweight Flow-Formed Barrel",
+      "Iconic 15\" to 20\" JDM 6-Spoke & Step-Lip Designs for Cars & SUVs",
+      "Selected Models Included in 20% OFF Rims Promo",
+      "FREE RAYS Lug Nuts on Promo Packages",
+      "Expert Flush / Aggressive Fender Fitment & Alignment",
     ],
   },
 ];
@@ -167,98 +356,103 @@ const RIMS_DATA: ProductItem[] = [
 const ACCESSORIES_DATA: ProductItem[] = [
   {
     id: 101,
-    name: "Super Low Stance Coilovers",
-    price: 55000,
-    originalPrice: 60000,
+    name: "Patriot Tires 3+1 Promo (Buy 3 Get 1 Free)",
+    price: 0,
+    priceLabel: "BUY 3 + 1 FREE",
+    originalPrice: null,
     isSale: true,
-    image:
-      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    saleBadge: "3+1 PROMO!",
+    isPoster: true,
+    image: "/promos/promo-tire-3plus1.jpg",
     category: "UPGRADES & PARTS",
     specs: [
-      "32-Way Damping Force Adjustment",
-      "Pillowball Camber Top Mounts",
-      "Full-Length Ride Height Adjustable",
-      "High-Tensile Heavy Duty Springs",
+      "Buy 3 Patriot Tires and Get 1 Tire FREE (3+1 Promo)",
+      "FREE Installation & Computerized Wheel Balance",
+      "Aggressive All-Terrain & Mud-Terrain Tread Design",
+      "KC Ken: 0997 269 3611 | Owing: 0962 898 5139 | Johnrick: 0970 382 3659",
     ],
   },
   {
     id: 102,
-    name: "Air Suspension Management",
-    price: 180000,
+    name: "Profender Queen Series Suspension Kit",
+    price: 78000,
+    originalPrice: 85000,
+    isSale: true,
+    saleBadge: "BEST SELLER",
+    image:
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    category: "UPGRADES & PARTS",
+    specs: [
+      "Profender Queen Series Front Adjustable Coilovers + Rear Piggyback",
+      "8-Step / 16-Step Compression & Rebound Damping Adjustment",
+      "Plush Highway Ride + Heavy-Duty Off-Road Control",
+      "Includes Underchassis Inspection & Wheel Alignment",
+    ],
+  },
+  {
+    id: 103,
+    name: "Old Man Emu (OME) Nitrocharger+ & RideMax",
+    price: 65000,
     originalPrice: null,
     isSale: false,
     image:
       "https://images.unsplash.com/photo-1552554761-0b5c929837a4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "UPGRADES & PARTS",
     specs: [
-      "Digital Pressure Preset Controller + Mobile App",
-      "Dual High-Output Compressors",
-      "Seamless Aluminum Air Tank",
-      "Complete Double-Bellow Air Struts & Lines",
-    ],
-  },
-  {
-    id: 103,
-    name: "Drag Slicks (Pair)",
-    price: 45000,
-    originalPrice: 50000,
-    isSale: true,
-    image:
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "UPGRADES & PARTS",
-    specs: [
-      "Soft R2 Drag Compound for Maximum 60ft Launch",
-      "Reinforced Sidewall Construction",
-      "Proven Strip Consistency",
-      "Professional Mounting & Balancing Included",
+      "Genuine Old Man Emu Nitrocharger+ & RideMax Suspension Systems",
+      "Engineered for Both On-Road Comfort and Off-Road Terrain",
+      "Matched Coil Springs, Leaf Springs & Struts for 4x4 Pickups/SUVs",
+      "Full In-House Underchassis Installation & Alignment",
     ],
   },
   {
     id: 104,
-    name: "Adjustable Camber Arms",
-    price: 12000,
+    name: "Hamer 4x4 Bumpers, Rollbars & ARB Protection",
+    price: 42000,
+    originalPrice: 48000,
+    isSale: true,
+    saleBadge: "4X4 ARMOR",
+    image:
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    category: "UPGRADES & PARTS",
+    specs: [
+      "Authentic Hamer 4x4 Steel Bumpers, Roll Bars, Nudge Bars & Tow Hitches",
+      "ARB Under-Vehicle Protection (UVP) Skid Plates & Recovery Gear",
+      "Matte Black Powder-Coated Heavy-Duty Steel Construction",
+      "Direct Fitment for Hilux, Ranger, Triton, Navara & D-Max",
+    ],
+  },
+  {
+    id: 105,
+    name: "Roller Lids, Trifold Covers & Hard Top Canopies",
+    price: 32000,
     originalPrice: null,
     isSale: false,
     image:
       "https://images.unsplash.com/photo-1596769490190-84c483d8b1e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "UPGRADES & PARTS",
     specs: [
-      "CNC Billet / Heavy-Wall Steel Construction",
-      "Spherical Bearings for Zero Deflection",
-      "Wide Camber Correction Range",
-      "Direct Bolt-On Installation",
-    ],
-  },
-  {
-    id: 105,
-    name: "Euro Spec Big Brake Kit",
-    price: 110000,
-    originalPrice: 125000,
-    isSale: true,
-    image:
-      "https://images.unsplash.com/photo-1506016147775-68a85de9b30c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "UPGRADES & PARTS",
-    specs: [
-      "6-Piston Forged Monoblock Calipers",
-      "380mm 2-Piece Slotted & Drilled Floating Rotors",
-      "Stainless Steel Braided Brake Lines",
-      "High-Temp Street/Track Pads Included",
+      "Manual & Electric Retractable Roller Lids, Trifold Covers & Canopies",
+      "Weatherproof Key-Locking Cargo Protection for Pickup Beds",
+      "Compatible with Hamer Sports Bars & Overland Rack Systems",
+      "Includes Drainage Channels & Professional Installation",
     ],
   },
   {
     id: 106,
-    name: "Drag Prep Tuning Kit",
-    price: 48000,
-    originalPrice: null,
-    isSale: false,
+    name: "Novsight / Nacho LED & ARB Camping Gear",
+    price: 14500,
+    originalPrice: 16500,
+    isSale: true,
+    saleBadge: "OVERLAND",
     image:
-      "https://images.unsplash.com/photo-1620054948839-81342674eb99?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      "https://images.unsplash.com/photo-1506016147775-68a85de9b30c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     category: "UPGRADES & PARTS",
     specs: [
-      "Launch Control & Boost-by-Gear Calibration",
-      "Drivetrain Stiffening Mount Package",
-      "High-Flow Fuel & Ignition Prep",
-      "Dyno & Street Verification",
+      "Authorized Novsight LED & Nacho Off-Road Auxiliary Lighting",
+      "Genuine ARB Camping Chairs, Tables & Overland Accessories",
+      "IP68 Waterproof Lighting for Heavy Rain & Trail Driving",
+      "Clean Relay Harness & Aiming Calibration Included",
     ],
   },
 ];
@@ -266,38 +460,39 @@ const ACCESSORIES_DATA: ProductItem[] = [
 const PACKAGES_DATA: PackageItem[] = [
   {
     id: 1,
-    name: "VIP STANCE BUILD",
-    description: "Aggressive static drop or bagged perfection. Lay it out.",
-    price: 165000,
+    name: "20\" RIM & TIRE PROMO BUILD",
+    description: "Our signature 96K all-in wheel & tire upgrade package.",
+    price: 96000,
     features: [
-      "Coilovers / Air Ride Install",
-      "Fender Rolling & Pulling",
-      "Custom Camber Setup",
-      "Laser Alignment",
+      "20x9 FUEL Off-Road Alloy Rims",
+      "275/55 R20 Venom Power Terra Hunter X/T2",
+      "FREE Installation & Wheel Balance",
+      "FREE RAYS Lug Nuts + Camping Chair (First 5!)",
     ],
   },
   {
     id: 2,
-    name: "DRAG PREP TUNE",
-    description: "Maximized traction. Reduced mass. Pure straight-line speed.",
-    price: 250000,
+    name: "4X4 SUSPENSION & ALIGNMENT",
+    description:
+      "Plush daily comfort meets commanding off-road ground clearance.",
+    price: 135000,
     features: [
-      "M/T Drag Slicks Fitting",
-      "Lightweight Alloy Prep",
-      "Suspension Tuning",
-      "Launch Geometry Alignment",
+      "Profender Queen Series / Old Man Emu / RideMax",
+      "Underchassis & Upper Control Arm Setup",
+      "2-Inch Suspension Lift & Leveling",
+      "Computerized Wheel Alignment & Balance",
     ],
   },
   {
     id: 3,
-    name: "EURO TRACK SETUP",
-    description: "Corner carving capability with autobahn stability.",
-    price: 320000,
+    name: "OVERLAND ARMOR & CAMPING RIG",
+    description: "Complete 4x4 protection, bed cover, lighting & ARB gear.",
+    price: 175000,
     features: [
-      "Big Brake Kit Install",
-      "Euro Mesh Wheel Fitment",
-      "Track Spec Coilovers",
-      "Corner Balancing",
+      "Hamer 4x4 Rollbar/Bumper & ARB UVP Plates",
+      "Roller Lid / Trifold / Hard Top Canopy",
+      "Patriot 3+1 or BFGoodrich All-Terrain Tires",
+      "Novsight / Nacho LED + ARB Camping Gear",
     ],
   },
 ];
@@ -313,13 +508,11 @@ const formatPHP = (number: number): string => {
 const Marquee = () => (
   <div className="bg-[#fe0002] text-white py-3 overflow-hidden border-y-4 border-black relative z-40 w-full shadow-[0_6px_0_0_rgba(0,0,0,1)]">
     <div className="whitespace-nowrap flex w-max animate-[marquee_20s_linear_infinite] font-black text-lg md:text-2xl tracking-widest uppercase">
-      {Array(15)
-        .fill("• TOMAS AUTOWORKS • PREMIUM UPGRADES ")
-        .map((text, i) => (
-          <span key={i} className="mx-5 drop-shadow-[2px_2px_0_black]">
-            {text}
-          </span>
-        ))}
+      {AUTHORIZED_BRANDS.concat(AUTHORIZED_BRANDS).map((brand, i) => (
+        <span key={i} className="mx-5 drop-shadow-[2px_2px_0_black]">
+          • {brand}
+        </span>
+      ))}
     </div>
   </div>
 );
@@ -397,21 +590,32 @@ const ProductGrid = ({
               >
                 {item.isSale && (
                   <div className="absolute -top-4 -right-4 bg-[#fe0002] text-white px-4 py-1.5 border-2 border-black font-black text-sm md:text-base uppercase transform rotate-6 z-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:rotate-12 transition-transform">
-                    SALE!
+                    {item.saleBadge || "SALE!"}
                   </div>
                 )}
 
-                <div className="relative h-56 md:h-60 overflow-hidden bg-gray-100 border-b-4 border-black">
-                  <div className="absolute inset-0 bg-[#fe0002] opacity-0 group-hover:opacity-20 mix-blend-multiply transition-opacity duration-300 z-10"></div>
+                <div
+                  className={`relative h-64 md:h-72 overflow-hidden border-b-4 border-black ${
+                    item.isPoster ? "bg-neutral-950" : "bg-gray-100"
+                  }`}
+                >
+                  {!item.isPoster && (
+                    <div className="absolute inset-0 bg-[#fe0002] opacity-0 group-hover:opacity-20 mix-blend-multiply transition-opacity duration-300 z-10"></div>
+                  )}
                   <img
                     src={item.image}
                     alt={item.name}
                     loading="lazy"
-                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-105 group-hover:rotate-1 transition-all duration-500"
+                    className={
+                      item.isPoster
+                        ? "w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                        : "w-full h-full object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-105 group-hover:rotate-1 transition-all duration-500"
+                    }
                   />
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
                     <span className="w-full bg-black text-white px-4 py-2.5 font-black uppercase text-sm flex items-center justify-center gap-2 border-2 border-black hover:bg-[#fe0002]">
-                      Inspect Specs <ArrowUpRight size={18} />
+                      {item.isPoster ? "View Promo Details" : "Inspect Specs"}{" "}
+                      <ArrowUpRight size={18} />
                     </span>
                   </div>
                 </div>
@@ -423,11 +627,19 @@ const ProductGrid = ({
                   <div className="mt-auto pt-4 border-t-2 border-dashed border-gray-300">
                     {item.isSale ? (
                       <div className="flex flex-col">
-                        <span className="text-xs md:text-sm font-bold text-gray-400 line-through tracking-wider">
-                          {formatPHP(item.originalPrice as number)}
-                        </span>
+                        {item.originalPrice ? (
+                          <span className="text-xs md:text-sm font-bold text-gray-400 line-through tracking-wider">
+                            {formatPHP(item.originalPrice)}
+                          </span>
+                        ) : (
+                          <span className="text-xs md:text-sm font-bold text-black uppercase tracking-wider">
+                            LIMITED TIME PROMO
+                          </span>
+                        )}
                         <span className="text-2xl md:text-3xl font-black text-[#fe0002] tracking-tighter">
-                          {formatPHP(item.price)}
+                          {item.priceLabel
+                            ? item.priceLabel
+                            : formatPHP(item.price)}
                         </span>
                       </div>
                     ) : (
@@ -436,7 +648,9 @@ const ProductGrid = ({
                           Spacer
                         </span>
                         <span className="text-2xl md:text-3xl font-black text-black tracking-tighter">
-                          {formatPHP(item.price)}
+                          {item.priceLabel
+                            ? item.priceLabel
+                            : formatPHP(item.price)}
                         </span>
                       </div>
                     )}
@@ -457,6 +671,7 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(
     null
   );
+  const [selectedPromo, setSelectedPromo] = useState<PromoPost | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -483,18 +698,20 @@ export default function Home() {
             </a>
 
             <div className="hidden md:flex items-center space-x-1">
-              {["Rims", "Accessories", "Packages"].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="px-4 py-2 text-white font-black uppercase tracking-wider text-sm lg:text-base hover:bg-black hover:text-[#fe0002] hover:-skew-x-12 transition-all"
-                >
-                  {item}
-                </a>
-              ))}
+              {["Promos", "Services", "Rims", "Accessories", "Packages"].map(
+                (item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    className="px-3.5 py-2 text-white font-black uppercase tracking-wider text-sm lg:text-base hover:bg-black hover:text-[#fe0002] hover:-skew-x-12 transition-all"
+                  >
+                    {item}
+                  </a>
+                )
+              )}
               <a
                 href="#contact"
-                className="ml-3 px-5 py-2.5 bg-black text-white font-black uppercase tracking-wider text-sm lg:text-base border-2 border-black hover:bg-white hover:text-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
+                className="ml-2 px-5 py-2.5 bg-black text-white font-black uppercase tracking-wider text-sm lg:text-base border-2 border-black hover:bg-white hover:text-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
               >
                 BOOK NOW
               </a>
@@ -521,16 +738,18 @@ export default function Home() {
               className="md:hidden bg-black border-t-4 border-black absolute w-full left-0 shadow-[0_12px_24px_rgba(0,0,0,0.5)]"
             >
               <div className="flex flex-col p-5 space-y-3">
-                {["Rims", "Accessories", "Packages"].map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-white font-black uppercase text-xl border-b-2 border-gray-800 pb-3 hover:text-[#fe0002]"
-                  >
-                    {item}
-                  </a>
-                ))}
+                {["Promos", "Services", "Rims", "Accessories", "Packages"].map(
+                  (item) => (
+                    <a
+                      key={item}
+                      href={`#${item.toLowerCase()}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-white font-black uppercase text-xl border-b-2 border-gray-800 pb-3 hover:text-[#fe0002]"
+                    >
+                      {item}
+                    </a>
+                  )
+                )}
                 <a
                   href="#contact"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -603,17 +822,18 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-4 mt-6 w-full sm:w-auto px-4"
           >
             <a
-              href="#packages"
-              className="w-full sm:w-auto px-7 py-3.5 bg-[#fe0002] text-white font-black text-base md:text-lg uppercase tracking-widest border-4 border-black hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] transition-all flex items-center justify-center gap-3 group"
+              href="#promos"
+              className="w-full sm:w-auto px-7 py-3.5 bg-[#fe0002] text-white font-black text-base md:text-lg uppercase tracking-widest border-4 border-black hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] transition-all inline-flex items-center justify-center gap-3 group"
             >
-              BUILD IT{" "}
-              <Flame className="group-hover:animate-pulse" size={22} />
+              <span>HOT PROMOS</span>
+              <Flame className="shrink-0 group-hover:scale-110 transition-transform" size={20} />
             </a>
             <a
-              href="#rims"
-              className="w-full sm:w-auto px-7 py-3.5 bg-white text-black font-black text-base md:text-lg uppercase tracking-widest border-4 border-black hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(254,0,2,1)] transition-all flex items-center justify-center gap-3"
+              href="#services"
+              className="w-full sm:w-auto px-7 py-3.5 bg-white text-black font-black text-base md:text-lg uppercase tracking-widest border-4 border-black hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(254,0,2,1)] transition-all inline-flex items-center justify-center gap-3 group"
             >
-              PARTS <Crosshair size={22} />
+              <span>OUR SERVICES</span>
+              <Wrench className="shrink-0 group-hover:rotate-12 transition-transform duration-300" size={20} />
             </a>
           </motion.div>
 
@@ -637,6 +857,7 @@ export default function Home() {
       <Marquee />
 
       <main className="bg-white relative z-30 pt-12">
+        {/* Quick Category Cards */}
         <section className="max-w-6xl mx-auto px-4 pb-14">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a
@@ -644,16 +865,18 @@ export default function Home() {
               className="group relative h-52 md:h-56 border-4 border-black bg-white overflow-hidden flex items-center justify-center hover:-translate-y-2 hover:shadow-[12px_12px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
             >
               <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-              <div className="relative z-10 text-center px-5">
-                <Gauge
-                  size={44}
-                  className="mx-auto mb-4 text-black group-hover:text-white transition-colors duration-500"
-                />
-                <h3 className="text-2xl md:text-3xl font-black uppercase text-black group-hover:text-white transition-colors duration-500">
-                  WHEELS
+              <div className="relative z-10 flex flex-col items-center justify-center text-center px-5">
+                <div className="w-12 h-12 flex items-center justify-center mb-3.5">
+                  <WheelIcon
+                    size={46}
+                    className="text-black group-hover:text-white group-hover:rotate-45 transition-all duration-500"
+                  />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black uppercase leading-none text-black group-hover:text-white transition-colors duration-500">
+                  WHEELS & TIRES
                 </h3>
-                <p className="font-bold text-sm md:text-base text-[#fe0002] uppercase mt-1.5 tracking-widest">
-                  Shop Fitment
+                <p className="font-bold text-sm md:text-base text-[#fe0002] uppercase mt-2 tracking-widest">
+                  15&quot;–20&quot; Rims • BFGoodrich
                 </p>
               </div>
             </a>
@@ -663,16 +886,18 @@ export default function Home() {
               className="group relative h-52 md:h-56 border-4 border-black bg-white overflow-hidden flex items-center justify-center hover:-translate-y-2 hover:shadow-[12px_12px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
             >
               <div className="absolute inset-0 bg-[#fe0002] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out z-0"></div>
-              <div className="relative z-20 text-center px-5">
-                <Zap
-                  size={44}
-                  className="mx-auto mb-4 text-black group-hover:text-white transition-colors duration-500"
-                />
-                <h3 className="text-2xl md:text-3xl font-black uppercase text-black group-hover:text-white transition-colors duration-500">
-                  PERFORMANCE
+              <div className="relative z-20 flex flex-col items-center justify-center text-center px-5">
+                <div className="w-12 h-12 flex items-center justify-center mb-3.5">
+                  <Gauge
+                    size={44}
+                    className="text-black group-hover:text-white transition-colors duration-500"
+                  />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black uppercase leading-none text-black group-hover:text-white transition-colors duration-500">
+                  SUSPENSION & 4X4
                 </h3>
-                <p className="font-bold text-sm md:text-base text-[#fe0002] group-hover:text-black uppercase mt-1.5 tracking-widest transition-colors duration-500">
-                  Brakes & Suspension
+                <p className="font-bold text-sm md:text-base text-[#fe0002] group-hover:text-black uppercase mt-2 tracking-widest transition-colors duration-500">
+                  Profender • OME • Hamer • ARB
                 </p>
               </div>
             </a>
@@ -682,16 +907,230 @@ export default function Home() {
               className="group relative h-52 md:h-56 border-4 border-black bg-black overflow-hidden flex items-center justify-center hover:-translate-y-2 hover:shadow-[12px_12px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
             >
               <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-              <div className="relative z-10 text-center px-5">
-                <Flame size={44} className="mx-auto mb-4 text-[#fe0002]" />
-                <h3 className="text-2xl md:text-3xl font-black uppercase text-white group-hover:text-black transition-colors duration-500">
-                  PACKAGES
+              <div className="relative z-10 flex flex-col items-center justify-center text-center px-5">
+                <div className="w-12 h-12 flex items-center justify-center mb-3.5">
+                  <Wrench
+                    size={42}
+                    className="text-[#fe0002] group-hover:rotate-12 transition-transform duration-500"
+                  />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black uppercase leading-none text-white group-hover:text-black transition-colors duration-500">
+                  BUILD PACKAGES
                 </h3>
-                <p className="font-bold text-sm md:text-base text-gray-400 group-hover:text-[#fe0002] uppercase mt-1.5 tracking-widest transition-colors duration-500">
-                  All-in-one builds
+                <p className="font-bold text-sm md:text-base text-gray-400 group-hover:text-[#fe0002] uppercase mt-2 tracking-widest transition-colors duration-500">
+                  Install, Balance & Alignment
                 </p>
               </div>
             </a>
+          </div>
+        </section>
+
+        {/* Featured Promo Posts Section */}
+        <section
+          id="promos"
+          className="py-16 bg-neutral-950 border-y-4 border-black relative overflow-hidden"
+        >
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b-4 border-[#fe0002] pb-4 gap-4">
+              <div>
+                <span className="inline-flex items-center gap-2 bg-[#fe0002] text-white px-3 py-1 border-2 border-white font-black uppercase text-xs tracking-widest mb-3">
+                  <Tag size={14} /> OFFICIAL SHOP PROMOS
+                </span>
+                <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">
+                  FEATURED <span className="text-[#fe0002]">PROMO POSTS</span>
+                </h2>
+              </div>
+              <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-300">
+                Click any poster to inspect full promo details
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {PROMO_POSTS.map((post) => (
+                <div
+                  key={post.id}
+                  className="bg-white border-4 border-black flex flex-col hover:-translate-y-2 hover:shadow-[12px_12px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
+                >
+                  {/* Poster Image Container */}
+                  <div
+                    onClick={() => setSelectedPromo(post)}
+                    className="relative bg-neutral-900 border-b-4 border-black cursor-pointer group overflow-hidden"
+                  >
+                    <div className="absolute top-3 left-3 z-20 bg-[#fe0002] text-white px-2.5 py-1 border-2 border-black font-black uppercase text-[11px] tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      {post.badge}
+                    </div>
+                    <div className="absolute top-3 right-3 z-20 bg-yellow-400 text-black px-3 py-1 border-2 border-black font-black uppercase text-sm md:text-base tracking-tight shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                      {post.highlightPrice}
+                    </div>
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      loading="lazy"
+                      className="w-full aspect-[4/5] object-contain bg-black group-hover:scale-[1.02] transition-transform duration-300"
+                    />
+                    <div className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="bg-black text-white px-3 py-1.5 border-2 border-white font-black uppercase text-xs inline-flex items-center gap-1.5">
+                        View Full Poster <ArrowUpRight size={15} />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Post Details & CTA */}
+                  <div className="p-5 flex flex-col flex-grow justify-between bg-white">
+                    <div>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {post.brands.map((brand) => (
+                          <span
+                            key={brand}
+                            className="text-[10px] font-black uppercase tracking-wider bg-gray-100 text-black px-2 py-0.5 border-2 border-black"
+                          >
+                            {brand}
+                          </span>
+                        ))}
+                      </div>
+
+                      <h3 className="text-lg md:text-xl font-black uppercase text-black leading-tight">
+                        {post.title}
+                      </h3>
+                      <p className="text-xs font-black uppercase text-[#fe0002] tracking-wider mt-1 mb-4">
+                        {post.subtitle}
+                      </p>
+
+                      <ul className="space-y-2 mb-5 border-t-2 border-dashed border-gray-300 pt-3.5">
+                        {post.perks.map((perk, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2 text-xs font-bold uppercase text-black"
+                          >
+                            <CheckCircle2
+                              size={15}
+                              className="text-[#fe0002] shrink-0 mt-0.5"
+                            />
+                            <span>{perk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      <a
+                        href="https://www.facebook.com/tomasautoworkstacloban"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-4 bg-[#fe0002] text-white font-black text-xs md:text-sm uppercase tracking-wider border-2 border-black hover:bg-black transition-colors inline-flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                      >
+                        <Facebook size={16} />
+                        {post.ctaText}
+                      </a>
+                      <button
+                        onClick={() => setSelectedPromo(post)}
+                        className="w-full py-2 px-4 bg-white text-black font-black text-xs uppercase tracking-wider border-2 border-black hover:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        ZOOM POSTER
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Shop Services & Authorized Brands Section */}
+        <section
+          id="services"
+          className="py-16 bg-gray-50 border-b-4 border-black relative"
+        >
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b-4 border-black pb-4 gap-4">
+              <div>
+                <span className="inline-flex items-center gap-2 bg-black text-white px-3 py-1 border-2 border-black font-black uppercase text-xs tracking-widest mb-3">
+                  <ShieldCheck size={14} className="text-[#fe0002]" /> YOUR
+                  FRIENDLY NEIGHBORHOOD CAR ACCESSORIES SHOP
+                </span>
+                <h2 className="text-3xl md:text-5xl font-black text-black uppercase tracking-tighter leading-none">
+                  SHOP SERVICES & <br />
+                  <span className="text-[#fe0002]">SPECIALIZATIONS</span>
+                </h2>
+              </div>
+              <p className="text-xs md:text-sm font-black uppercase tracking-widest text-black bg-white px-3.5 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(254,0,2,1)]">
+                IP Cars Compound, Maharlika Highway
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+              {SERVICES_DATA.map((service) => (
+                <div
+                  key={service.id}
+                  className="bg-white border-4 border-black p-6 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-[10px_10px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b-2 border-dashed border-gray-300">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-black uppercase text-black leading-none">
+                          {service.title}
+                        </h3>
+                        <p className="text-xs font-black uppercase text-[#fe0002] tracking-widest mt-1.5">
+                          {service.subtitle}
+                        </p>
+                      </div>
+                      <div className="w-12 h-12 bg-black text-white border-2 border-black flex items-center justify-center shrink-0">
+                        {service.icon === "wheel" && (
+                          <WheelIcon size={28} className="text-[#fe0002]" />
+                        )}
+                        {service.icon === "suspension" && (
+                          <Gauge size={28} className="text-[#fe0002]" />
+                        )}
+                        {service.icon === "truck" && (
+                          <Truck size={28} className="text-[#fe0002]" />
+                        )}
+                        {service.icon === "light" && (
+                          <Sparkles size={28} className="text-[#fe0002]" />
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-xs md:text-sm font-bold text-gray-800 uppercase leading-relaxed mb-5">
+                      {service.description}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 pt-2">
+                    {service.brands.map((brand) => (
+                      <span
+                        key={brand}
+                        className="text-[11px] font-black uppercase tracking-wider bg-black text-white px-2.5 py-1 border-2 border-black"
+                      >
+                        {brand}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Authorized Brands Banner */}
+            <div className="bg-black text-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(254,0,2,1)]">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+                <h4 className="text-lg md:text-xl font-black uppercase tracking-wider text-white">
+                  FEATURED & AUTHORIZED{" "}
+                  <span className="text-[#fe0002]">BRANDS WE CARRY</span>
+                </h4>
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-300">
+                  100% Authentic Parts • Free Promo Installation & Wheel Balance
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {AUTHORIZED_BRANDS.map((brand) => (
+                  <span
+                    key={brand}
+                    className="px-3 py-1.5 bg-white text-black font-black text-xs md:text-sm uppercase tracking-wider border-2 border-[#fe0002]"
+                  >
+                    {brand}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -722,7 +1161,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="mb-14 flex flex-col items-center text-center">
               <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-[4px_4px_0_#fe0002]">
-                VIP BUILDS
+                SIGNATURE BUILDS
               </h2>
               <div className="w-28 h-2.5 bg-[#fe0002]"></div>
             </div>
@@ -733,14 +1172,28 @@ export default function Home() {
                   key={pkg.id}
                   className="bg-white border-4 border-black flex flex-col group hover:-translate-y-3 hover:shadow-[12px_12px_0px_0px_rgba(254,0,2,1)] transition-all duration-300"
                 >
-                  <div className="bg-black text-white p-5 md:p-6 border-b-4 border-black flex justify-between items-center group-hover:bg-[#fe0002] transition-colors">
-                    <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+                  <div className="bg-black text-white p-5 md:p-6 min-h-[5.25rem] border-b-4 border-black flex justify-between items-center gap-4 group-hover:bg-[#fe0002] transition-colors">
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-tight">
                       {pkg.name}
                     </h3>
-                    <Flame
-                      className="text-[#fe0002] group-hover:text-white shrink-0"
-                      size={28}
-                    />
+                    {pkg.id === 1 && (
+                      <WheelIcon
+                        className="text-[#fe0002] group-hover:text-white shrink-0 transition-colors"
+                        size={30}
+                      />
+                    )}
+                    {pkg.id === 2 && (
+                      <Gauge
+                        className="text-[#fe0002] group-hover:text-white shrink-0 transition-colors"
+                        size={30}
+                      />
+                    )}
+                    {pkg.id === 3 && (
+                      <Truck
+                        className="text-[#fe0002] group-hover:text-white shrink-0 transition-colors"
+                        size={30}
+                      />
+                    )}
                   </div>
 
                   <div className="p-6 flex-grow bg-white">
@@ -789,11 +1242,22 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-10 mb-14 border-b-4 border-black pb-14">
             <div className="text-center md:text-left md:w-1/2">
               <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6 drop-shadow-[4px_4px_0_black]">
-                READY TO <br /> BREAK NECKS?
+                READY TO <br /> UPGRADE YOUR RIG?
               </h2>
-              <p className="font-bold text-base md:text-lg uppercase tracking-widest text-black bg-white px-5 py-3 inline-block border-4 border-black">
-                Send us a message today.
+              <p className="font-bold text-base md:text-lg uppercase tracking-widest text-black bg-white px-5 py-3 inline-block border-4 border-black mb-6">
+                Your Friendly Neighborhood Car Accessories Shop
               </p>
+              <div className="bg-black/90 border-4 border-black p-4 text-left max-w-md mx-auto md:mx-0">
+                <p className="text-xs font-black uppercase tracking-widest text-[#fe0002] mb-1">
+                  TACLOBAN FITMENT, SUSPENSION & 4X4 HQ
+                </p>
+                <p className="text-xs md:text-sm font-bold uppercase text-white leading-relaxed">
+                  15&quot;–20&quot; Rims & Tires • Wheel Alignment & Balance •
+                  Profender, OME & RideMax Suspension • Hamer 4x4 & ARB Armor •
+                  Roller Lids, Trifolds & Hard Top Canopies • LED Lighting & ARB
+                  Camping Gear
+                </p>
+              </div>
             </div>
 
             <div className="w-full md:w-1/2 flex flex-col gap-5">
@@ -810,10 +1274,10 @@ export default function Home() {
                   />
                   <div>
                     <h4 className="font-black text-xl md:text-2xl uppercase text-white group-hover:text-black leading-tight">
-                      MESSAGE US ON FACEBOOK
+                      TOMAS AUTOWORKS TACLOBAN
                     </h4>
                     <p className="font-bold text-sm md:text-base text-gray-400 group-hover:text-[#fe0002] uppercase mt-1">
-                      Fastest Response Time
+                      12.2K+ Followers • Message Us on Facebook
                     </p>
                   </div>
                 </div>
@@ -825,15 +1289,31 @@ export default function Home() {
 
               <div className="w-full p-6 bg-white border-4 border-black flex flex-col gap-4">
                 <h4 className="font-black text-xl md:text-2xl uppercase text-black">
-                  HEADQUARTERS
+                  HEADQUARTERS & SALES REPS
                 </h4>
-                <div className="flex items-start gap-4 text-black font-bold uppercase text-base md:text-lg">
-                  <MapPin size={26} className="text-[#fe0002] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-4 text-black font-bold uppercase text-sm md:text-base">
+                  <MapPin size={24} className="text-[#fe0002] shrink-0 mt-0.5" />
                   <p>
-                    Maharlika Highway,
+                    Maharlika Highway (IP Cars Compound,
                     <br />
-                    Tacloban City, Leyte, PH
+                    Across Angelicum Learning School),
+                    <br />
+                    Tacloban City, Leyte, Philippines
                   </p>
+                </div>
+                <div className="flex flex-col gap-2 text-black font-black uppercase text-xs md:text-sm border-t-2 border-dashed border-gray-300 pt-3">
+                  <div className="flex items-center gap-3">
+                    <Phone size={18} className="text-[#fe0002] shrink-0" />
+                    <span>KC KEN: 0997 269 3611</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone size={18} className="text-[#fe0002] shrink-0" />
+                    <span>OWING (ANGKOL OWING): 0962 898 5139</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone size={18} className="text-[#fe0002] shrink-0" />
+                    <span>JOHNRICK CABRERA: 0970 382 3659</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -848,15 +1328,72 @@ export default function Home() {
                 className="h-16 md:h-20 w-auto object-contain"
               />
               <p className="text-white drop-shadow-[2px_2px_0_black]">
-                &copy; {new Date().getFullYear()} TOMAS AUTOWORKS.
+                &copy; {new Date().getFullYear()} TOMAS AUTOWORKS TACLOBAN • MAS
+                AUTODESIGN CORP.
               </p>
             </div>
             <p className="bg-black text-white px-4 py-2.5 border-2 border-black text-center text-xs md:text-sm">
-              NO FAKE PARTS. STRICTLY PREMIUM.
+              AUTHORIZED DEALER • STRICTLY PREMIUM.
             </p>
           </div>
         </div>
       </footer>
+
+      {/* Promo Poster Lightbox Modal */}
+      <AnimatePresence>
+        {selectedPromo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedPromo(null)}
+            className="fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 20, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border-4 border-black max-w-xl w-full overflow-hidden shadow-[14px_14px_0px_0px_rgba(254,0,2,1)]"
+            >
+              <div className="bg-black text-white px-5 py-3 border-b-4 border-black flex justify-between items-center">
+                <span className="font-black uppercase tracking-widest text-xs md:text-sm text-[#fe0002]">
+                  {selectedPromo.title} — {selectedPromo.highlightPrice}
+                </span>
+                <button
+                  onClick={() => setSelectedPromo(null)}
+                  aria-label="Close Promo Poster"
+                  className="bg-[#fe0002] text-white p-1.5 border-2 border-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="bg-black max-h-[75vh] overflow-y-auto flex items-center justify-center">
+                <img
+                  src={selectedPromo.image}
+                  alt={selectedPromo.title}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+              <div className="p-4 bg-white border-t-4 border-black flex flex-col sm:flex-row gap-3 justify-between items-center">
+                <span className="text-xs font-black uppercase text-black">
+                  KC Ken: 0997 269 3611 | Owing: 0962 898 5139 | Johnrick: 0970
+                  382 3659
+                </span>
+                <a
+                  href="https://www.facebook.com/tomasautoworkstacloban"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#fe0002] text-white font-black text-xs md:text-sm uppercase tracking-wider border-2 border-black hover:bg-black transition-colors inline-flex items-center justify-center gap-2"
+                >
+                  <Facebook size={16} />
+                  {selectedPromo.ctaText}
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {selectedProduct && (
@@ -888,15 +1425,25 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="relative h-60 md:h-full bg-gray-100 border-b-4 md:border-b-0 md:border-r-4 border-black">
+                <div
+                  className={`relative border-b-4 md:border-b-0 md:border-r-4 border-black ${
+                    selectedProduct.isPoster
+                      ? "bg-neutral-950 flex items-center justify-center max-h-[65vh]"
+                      : "h-60 md:h-full bg-gray-100"
+                  }`}
+                >
                   <img
                     src={selectedProduct.image}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover"
+                    className={
+                      selectedProduct.isPoster
+                        ? "w-full h-full max-h-[65vh] object-contain"
+                        : "w-full h-full object-cover"
+                    }
                   />
                   {selectedProduct.isSale && (
                     <div className="absolute top-3 left-3 bg-[#fe0002] text-white px-3 py-1 border-2 border-black font-black uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      SALE!
+                      {selectedProduct.saleBadge || "SALE!"}
                     </div>
                   )}
                 </div>
@@ -914,7 +1461,9 @@ export default function Home() {
                           </span>
                         )}
                       <span className="text-2xl md:text-3xl font-black text-[#fe0002] tracking-tighter">
-                        {formatPHP(selectedProduct.price)}
+                        {selectedProduct.priceLabel
+                          ? selectedProduct.priceLabel
+                          : formatPHP(selectedProduct.price)}
                       </span>
                     </div>
 
@@ -941,7 +1490,9 @@ export default function Home() {
                     className="w-full py-3 bg-black text-white font-black text-sm md:text-base uppercase tracking-widest border-2 border-black hover:bg-[#fe0002] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2.5"
                   >
                     <Facebook size={18} />
-                    INQUIRE THIS PART
+                    {selectedProduct.isPoster
+                      ? "CLAIM THIS PROMO"
+                      : "INQUIRE THIS PART"}
                   </a>
                 </div>
               </div>
